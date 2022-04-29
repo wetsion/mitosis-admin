@@ -1,6 +1,8 @@
 export default {
   route: {
     dashboard: '首页',
+    template: '模版中心',
+    editTemplate: '编辑模版',
     documentation: '文档',
     guide: '引导页',
     permission: '权限测试页',

@@ -8,8 +8,8 @@
       <el-menu
         :default-active="activeMenu"
         :collapse="isCollapse"
-        :background-color="variables.menuBg"
-        :text-color="variables.menuText"
+        background-color="#304156"
+        text-color="#bfcbd9"
         :active-text-color="menuActiveTextColor"
         :unique-opened="false"
         :collapse-transition="false"
@@ -44,6 +44,12 @@ import variables from '@/styles/_variables.scss'
   }
 })
 export default class extends Vue {
+  mounted() {
+    console.log(variables.menuBg)
+    console.log(variables.menuActiveText)
+    console.log(variables.menuText)
+  }
+
   get sidebar() {
     return AppModule.sidebar
   }
@@ -60,11 +66,12 @@ export default class extends Vue {
     if (SettingsModule.sidebarTextTheme) {
       return SettingsModule.theme
     } else {
-      return variables.menuActiveText
+      return '#409EFF'
     }
   }
 
   get variables() {
+    console.log(variables)
     return variables
   }
 
