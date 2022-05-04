@@ -38,14 +38,21 @@
     </el-col>
     <el-col :span="8">
       <div style="border: 1px solid #ccc;margin-left: 10px;height: 500px">
-        <el-autocomplete
-          v-model="queryLabelInput"
-          placeholder="请输入标签名称"
-          :fetch-suggestions="querySearchAsync"
-          @select="handleSelect"
-          style="position: center">
-          <template slot="prepend">输入选择标签：</template>
-        </el-autocomplete>
+        <el-header>
+          <el-autocomplete
+            v-model="queryLabelInput"
+            placeholder="请输入标签名称"
+            :fetch-suggestions="querySearchAsync"
+            @select="handleSelect"
+            style="position: center">
+            <template slot="prepend">输入选择标签：</template>
+          </el-autocomplete>
+        </el-header>
+        <el-main>
+          <el-row v-for="sl in selectedLabels" :key="sl.id">
+            <el-tag closable @close="closeSelectedLabel(sl)" @click="insertSelectedLabelAgain(sl)">{{$t(sl.value)}}</el-tag>
+          </el-row>
+        </el-main>
       </div>
     </el-col>
   </el-row>
@@ -55,13 +62,16 @@
 import { Component, Vue } from 'vue-property-decorator';
 
 import { queryLabels } from '@/api/template';
-import { Boot } from '@wangeditor/editor';
+import { Boot, DomEditor, SlateTransforms, SlateElement } from '@wangeditor/editor';
 import '@wangeditor/editor/dist/css/style.css';
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
 import mentionModule from '@wangeditor/plugin-mention';
+import customLabelModule from '@/slate/index'
 import MentionModal from './MentionModal.vue';
+import { ElementWithId } from '@wangeditor/core/dist/core/src/editor/interface';
 
 Boot.registerModule(mentionModule);
+Boot.registerModule(customLabelModule);
 
 @Component({
   name: 'TemplateEdit',
@@ -91,6 +101,8 @@ export default class extends Vue {
   private htmlSource = '';
   private queryLabelInput = '';
   private queryLabelResult = [];
+
+  private selectedLabels = [];
 
   private onCreated(editor: object) {
     this.editor = Object.seal(editor) // 一定要用 Object.seal() ，否则会报错
@@ -149,6 +161,10 @@ export default class extends Vue {
   }
   private handleSelect(item) {
     console.log(item)
+    this.createLabelOnEditor(item)
+  }
+
+  private createLabelOnEditor(item) {
     const customLabelNode = {
       type: 'customLabel', // 必须是 'mention'
       value: item.code,
@@ -157,10 +173,43 @@ export default class extends Vue {
     }
     const editor = this.editor
     if (editor) {
+      this.addSelectedLabel(item)
       editor.restoreSelection()
       editor.insertNode(customLabelNode) // 插入
       editor.move(1) // 移动光标
     }
+  }
+
+  private addSelectedLabel(item) {
+    let en = this.selectedLabels.filter(sl => {
+      return sl.id === item.id
+    }).length;
+    if (en >= 1) {
+      return;
+    } else {
+      this.selectedLabels.push(item)
+    }
+  }
+
+  private closeSelectedLabel(item) {
+    console.log(item)
+    const editor = this.editor;
+    if (editor) {
+      let nodes: ElementWithId[] =  editor.getElemsByType('customLabel');
+      if (nodes.length === 0) {
+        return;
+      }
+      let filteredNodes = nodes.filter(nd => {
+        let tnd = JSON.parse(JSON.stringify(nd))
+        return tnd.info.id === item.id;
+      })
+      console.log(filteredNodes)
+    }
+  }
+
+  private insertSelectedLabelAgain(item) {
+    console.log(item)
+    this.createLabelOnEditor(item)
   }
 
   mounted() {
