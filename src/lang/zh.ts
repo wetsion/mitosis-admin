@@ -3,6 +3,7 @@ export default {
     dashboard: '首页',
     template: '模版中心',
     editTemplate: '编辑模版',
+    listTemplate: '模版列表',
     documentation: '文档',
     guide: '引导页',
     permission: '权限测试页',
@@ -86,6 +87,12 @@ export default {
   documentation: {
     documentation: '文档',
     github: 'Github 地址'
+  },
+  template: {
+    createTemplate: '新建模版',
+    saveTemplate: '保存模版',
+    cancelCreate: '取消',
+    confirmCreate: '确认'
   },
   permission: {
     createRole: '新增角色',

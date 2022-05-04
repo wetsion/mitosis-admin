@@ -59,7 +59,7 @@ export const asyncRoutes: RouteConfig[] = [
   {
     path: '/template',
     component: Layout,
-    redirect: '/template/edit',
+    redirect: '/template/list',
     meta: {
       title: 'template',
       icon: 'lock',
@@ -68,11 +68,22 @@ export const asyncRoutes: RouteConfig[] = [
     },
     children: [
       {
-        path: '/edit',
+        path: 'list',
+        component: () => import(/* webpackChunkName: "permission-page" */ '@/views/template/list.vue'),
+        name: 'ListTemplate',
+        meta: {
+          title: 'listTemplate',
+          roles: ['admin'] // or you can only set roles in sub nav
+        }
+      },
+      {
+        path: 'edit/:id(\\d+)',
         component: () => import(/* webpackChunkName: "permission-page" */ '@/views/template/edit.vue'),
         name: 'EditTemplate',
         meta: {
           title: 'editTemplate',
+          activeMenu: '/template/list',
+          hidden: true,
           roles: ['admin'] // or you can only set roles in sub nav
         }
       }

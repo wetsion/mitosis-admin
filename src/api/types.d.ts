@@ -42,3 +42,9 @@ export interface IUserData {
   introduction: string
   roles: string[]
 }
+
+export interface ITemplateData {
+  id: number
+  title: string
+  created: string | number
+}
