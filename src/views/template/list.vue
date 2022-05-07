@@ -89,6 +89,15 @@
               Edit
             </el-button>
           </router-link>
+          <el-button
+            type="primary"
+            size="small"
+            icon="el-icon-edit"
+            @click="printTemplate(row.id)"
+            :loading="getLoading(row.id)"
+          >
+            打印
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -107,7 +116,7 @@
 import { Component, Vue } from 'vue-property-decorator';
 import { ITemplateData } from '@/api/types'
 import { parseTime } from '@/utils'
-import { pageTemplates, createTemplate } from '@/api/template'
+import { pageTemplates, createTemplate, renderTemplate } from '@/api/template'
 import Pagination from '@/components/Pagination/index.vue'
 
 const defaultTemplate = {
@@ -132,6 +141,8 @@ export default class extends Vue{
     limit: 20
   }
 
+  private printLoading = {}
+
   created() {
     this.getList();
   }
@@ -140,13 +151,23 @@ export default class extends Vue{
     this.getList();
   }
 
+  private getLoading(id:number) {
+    if (this.printLoading[id + '-']) {
+      return this.printLoading[id + '-']
+    } else {
+      return false;
+    }
+  }
+
   private async getList() {
     this.listLoading = true
     const { data } = await pageTemplates(this.listQuery)
     this.list = data.data
     this.total = data.total
+    this.printLoading = {}
     this.list.forEach(d => {
       d.created = parseTime(d.created)
+      this.printLoading[d.id + '-'] = false
     })
     setTimeout(() => {
       this.listLoading = false
@@ -154,7 +175,7 @@ export default class extends Vue{
   }
 
   private handleCreateTemplate() {
-    this.role = Object.assign({}, defaultTemplate)
+    this.template = Object.assign({}, defaultTemplate)
     this.dialogVisible = true
   }
 
@@ -178,6 +199,25 @@ export default class extends Vue{
         type: 'error'
       })
     }
+  }
+
+  private async printTemplate(id:number) {
+    const ntf = this.$notify({
+      title: 'Success',
+      dangerouslyUseHTMLString: true,
+      message: '开始下载',
+      type: 'success',
+      duration: 0,
+      showClose: false
+    })
+    const {data} = await renderTemplate(id)
+    ntf.close()
+    this.$notify({
+      title: 'Success',
+      dangerouslyUseHTMLString: true,
+      message: '下载完成',
+      type: 'success'
+    })
   }
 }
 </script>

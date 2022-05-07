@@ -7,36 +7,9 @@
     <el-row :gutter="20" style="padding-left: 5px">
       <el-col :span="16">
         <el-tabs v-model="activeTab" type="card" @tab-click="clickTabs">
-          <el-tab-pane label="编辑器模式" name="editorMode">
+          <el-tab-pane label="编辑器" name="editorMode">
             <div style="border: 1px solid #ccc;margin-left: 10px;">
-              <Toolbar
-                style="border-bottom: 1px solid #ccc"
-                :editor="editor"
-                :defaultConfig="toolbarConfig"
-                :mode="mode"
-              />
-              <Editor
-                style="height: 500px; overflow-y: hidden;"
-                v-model="html"
-                :defaultConfig="editorConfig"
-                :mode="mode"
-                @onCreated="onCreated"
-              />
-              <MentionModal
-                v-if="isShowModal"
-                @hideMentionModal="hideMentionModal"
-                @insertMention="insertMention"
-              ></MentionModal>
-            </div>
-          </el-tab-pane>
-          <el-tab-pane label="源码模式" name="sourceMode">
-            <div style="width: 100%">
-              <el-input
-                type="textarea"
-                :rows="100"
-                placeholder="请输入内容"
-                v-model="htmlSource">
-              </el-input>
+              <tinymce ref="tinymce" v-if="tinymceActive" v-model="html"/>
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -65,48 +38,22 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-
+import { Component, Vue, Prop } from 'vue-property-decorator';
 import { queryLabels, previewTemplates, saveTemplate } from '@/api/template';
-import { Boot, DomEditor, SlateTransforms, SlateElement } from '@wangeditor/editor';
-import '@wangeditor/editor/dist/css/style.css';
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
-import mentionModule from '@wangeditor/plugin-mention';
-import customLabelModule from '@/slate/index'
-import MentionModal from './MentionModal.vue';
-import { ElementWithId } from '@wangeditor/core/dist/core/src/editor/interface';
-
-Boot.registerModule(mentionModule);
-Boot.registerModule(customLabelModule);
+import Tinymce from '@/components/Tinymce/index.vue'
 
 @Component({
-  name: 'TemplateEdit',
+  name: 'testTemplate',
   components: {
-    Editor,
-    Toolbar,
-    MentionModal
+    Tinymce
   }
 })
-export default class extends Vue {
-
+export default class extends Vue{
   private templateId = 0;
   private templateTitle = '';
   private templateContent = '';
 
-  private editor = null;
   private html = '<p>hello</p>';
-  private toolbarConfig = { };
-  private editorConfig = {
-    placeholder: '请输入内容...',
-    EXTEND_CONF: {
-      mentionConfig: {
-        showModal: this.showMentionModal,
-        hideModal: this.hideMentionModal,
-      },
-    }
-  };
-  private mode = 'default';
-  private isShowModal = false;
   private activeTab = '';
   private htmlSource = '';
   private queryLabelInput = '';
@@ -114,9 +61,18 @@ export default class extends Vue {
 
   private selectedLabels = [];
 
-  created() {
-    const id = this.$route.params && this.$route.params.id;
-    this.fetchTemplateData(parseInt(id))
+  // created() {
+  //   const id = this.$route.params && this.$route.params.id;
+  //   this.fetchTemplateData(parseInt(id))
+  // }
+  private tinymceActive = true
+
+  deactivated() {
+    this.tinymceActive = false
+  }
+
+  activated() {
+    this.tinymceActive = true
   }
 
   private async fetchTemplateData(id:number) {
@@ -177,44 +133,11 @@ export default class extends Vue {
     }
   }
 
-  private onCreated(editor: object) {
-    this.editor = Object.seal(editor) // 一定要用 Object.seal() ，否则会报错
-  }
-  private showMentionModal() {
-    this.isShowModal = true
-  }
-  private hideMentionModal() {
-    this.isShowModal = false
-  }
-  private insertMention(id: string, name: string) {
-    const mentionNode = {
-      type: 'mention', // 必须是 'mention'
-      value: name,
-      info: { id },
-      children: [{ text: '' }], // 必须有一个空 text 作为 children
-    }
-    const editor = this.editor
-    if (editor) {
-      editor.restoreSelection() // 恢复选区
-      editor.deleteBackward('character') // 删除 '@'
-      editor.insertNode(mentionNode) // 插入 mention
-      editor.move(1) // 移动光标
-    }
-    console.log(this.editor.getHtml())
-  }
   private clickTabs(tab) {
     console.log(tab)
     if (tab.name === 'editorMode') {
-      const editor = this.editor
-      if (editor) {
-        // editor.focus()
-      }
       this.htmlSource = ''
     } else if (tab.name === 'sourceMode') {
-      const editor = this.editor
-      if (editor) {
-        this.htmlSource = editor.getHtml()
-      }
     }
   }
   private loadAllLabels() {
@@ -238,19 +161,10 @@ export default class extends Vue {
   }
 
   private createLabelOnEditor(item) {
-    const customLabelNode = {
-      type: 'customLabel', // 必须是 'mention'
-      value: item.code,
-      info: { id: item.id },
-      children: [{ text: '' }], // 必须有一个空 text 作为 children
-    }
-    const editor = this.editor
-    if (editor) {
-      this.addSelectedLabel(item)
-      editor.restoreSelection()
-      editor.insertNode(customLabelNode) // 插入
-      editor.move(1) // 移动光标
-    }
+    this.addSelectedLabel(item)
+    const infoStr = encodeURIComponent(JSON.stringify(item));
+    const ctt = `<span style="background: #00ff80;margin-left: 2px" data-mitosis-type="customLabel" data-mitosis-is-void data-mitosis-is-inline data-value="${item.value}" data-info="${infoStr}">#${item.value}#</span>`;
+    (this.$refs.tinymce as Tinymce).insertContent(ctt);
   }
 
   private addSelectedLabel(item) {
@@ -265,19 +179,6 @@ export default class extends Vue {
   }
 
   private closeSelectedLabel(item) {
-    console.log(item)
-    const editor = this.editor;
-    if (editor) {
-      let nodes: ElementWithId[] =  editor.getElemsByType('customLabel');
-      if (nodes.length === 0) {
-        return;
-      }
-      let filteredNodes = nodes.filter(nd => {
-        let tnd = JSON.parse(JSON.stringify(nd))
-        return tnd.info.id === item.id;
-      })
-      console.log(filteredNodes)
-    }
   }
 
   private insertSelectedLabelAgain(item) {
@@ -286,21 +187,13 @@ export default class extends Vue {
   }
 
   mounted() {
-    // 模拟 ajax 请求，异步渲染编辑器
-    // setTimeout(() => {
-    //   this.html = '<p>模拟 Ajax 异步设置内容 HTML</p>'
-    // }, 1500)
     this.activeTab = 'editorMode'
     this.loadAllLabels()
+    const id = this.$route.params && this.$route.params.id;
+    this.fetchTemplateData(parseInt(id))
   }
 
-  public beforeDestroy() {
-    const editor = this.editor
-    if (editor == null) return
-    editor.destroy() // 组件销毁时，及时销毁编辑器
-  }
-
-}
+};
 </script>
 
 <style scoped>

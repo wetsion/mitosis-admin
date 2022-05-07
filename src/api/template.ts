@@ -19,6 +19,13 @@ export const previewTemplates = (data: any) =>
     method: 'get'
   })
 
+export const renderTemplate = (data: any) =>
+  request({
+    url: '/template/renderPdf?templateId=' + data,
+    method: 'get',
+    responseType: 'blob'
+  })
+
 export const createTemplate = (data: any) =>
   request({
     url: '/template/create',
