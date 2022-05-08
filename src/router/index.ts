@@ -88,6 +88,28 @@ export const asyncRoutes: RouteConfig[] = [
         }
       }
     ]
+  },
+  {
+    path: '/label',
+    component: Layout,
+    redirect: '/label/list',
+    meta: {
+      title: 'label',
+      icon: 'lock',
+      roles: ['admin', 'editor'], // you can set roles in root nav
+      alwaysShow: true // will always show the root menu
+    },
+    children: [
+      {
+        path: 'list',
+        component: () => import(/* webpackChunkName: "permission-page" */ '@/views/label/list.vue'),
+        name: 'ListLabel',
+        meta: {
+          title: 'listLabel',
+          roles: ['admin'] // or you can only set roles in sub nav
+        }
+      }
+    ]
   }
 ]
 

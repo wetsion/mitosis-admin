@@ -39,3 +39,17 @@ export const saveTemplate = (data: any) =>
     method: 'post',
     data
   })
+
+export const pageLabels = (data: any) =>
+  request({
+    url: '/label/page',
+    method: 'post',
+    data
+  })
+
+export const createLabel = (data: any) =>
+  request({
+    url: '/label/create',
+    method: 'post',
+    data
+  })

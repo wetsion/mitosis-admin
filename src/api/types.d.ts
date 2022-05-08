@@ -48,3 +48,11 @@ export interface ITemplateData {
   title: string
   created: string | number
 }
+
+export interface ILabelData {
+  id: number
+  code: string
+  name: string
+  dataType: number
+  created: string | number
+}
