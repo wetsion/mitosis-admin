@@ -45,7 +45,8 @@ export default class extends Vue{
       skin_url: `${process.env.BASE_URL}tinymce/skins/ui/oxide`,
       language: "zh-Hans", //语言
       language_url: `${process.env.BASE_URL}tinymce/zh-Hans.js`,
-      plugins: 'lists link table code help wordcount',
+      plugins: 'lists table code importcss help wordcount',
+      content_css: `${process.env.BASE_URL}tinymce/templateEdit.css`,
       hidden_input: false,
       init_instance_callback: (editor: any) => {
         if (this.value) {

@@ -1,0 +1,20 @@
+.customLabel {
+    cursor: pointer;
+    background: #8a8f97;
+    margin-left: 5px;
+    margin-right: 5px;
+    -webkit-user-modify: read-only;
+    -moz-user-modify: read-only;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.customLabel:hover {
+    border: 1px solid #000000;
+}
+
+.highlight {
+    background: #00ff00;
+}
