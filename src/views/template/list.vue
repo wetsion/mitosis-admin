@@ -77,7 +77,7 @@
       <el-table-column
         align="center"
         label="Actions"
-        width="120"
+        width="180"
       >
         <template slot-scope="{row}">
           <router-link :to="'/template/edit/'+row.id">
@@ -98,9 +98,49 @@
           >
             打印
           </el-button>
+          <el-button
+            type="primary"
+            size="small"
+            icon="el-icon-edit"
+            @click="mockRenderTemplate(row.id)"
+          >
+            渲染测试
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
+
+    <el-dialog
+      :visible.sync="mockRenderDialogVisible"
+      :title="$t('template.mockRender')"
+    >
+      <el-form
+        :model="mockRenderModel"
+        label-width="100px"
+        label-position="left"
+      >
+        <el-form-item v-for="str in selectedTemplateRelatedLabels" :key="str.id" :label="str.name">
+          <el-input
+            v-model="mockRenderModel[`${str.code}`]"
+            :placeholder="str.name"
+          />
+        </el-form-item>
+      </el-form>
+      <div style="text-align:right;">
+        <el-button
+          type="danger"
+          @click="cancelMockRenderTemplate"
+        >
+          {{ $t('template.cancelMockRender') }}
+        </el-button>
+        <el-button
+          type="primary"
+          @click="confirmMockRenderTemplate"
+        >
+          {{ $t('template.confirmMockRender') }}
+        </el-button>
+      </div>
+    </el-dialog>
 
     <pagination
       v-show="total>0"
@@ -114,9 +154,9 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import { ITemplateData } from '@/api/types'
+import { ITemplateData, ILabelData } from '@/api/types'
 import { parseTime } from '@/utils'
-import { pageTemplates, createTemplate, renderTemplate } from '@/api/template'
+import { pageTemplates, createTemplate, renderTemplate, mockRenderTemplate, getTemplateRelatedLabels } from '@/api/template'
 import Pagination from '@/components/Pagination/index.vue'
 
 const defaultTemplate = {
@@ -142,6 +182,12 @@ export default class extends Vue{
   }
 
   private printLoading = {}
+
+  private mockRenderDialogVisible = false;
+
+  private selectedTemplateRelatedLabels: ILabelData[] = [];
+
+  private mockRenderModel = {}
 
   created() {
     this.getList();
@@ -211,6 +257,49 @@ export default class extends Vue{
       showClose: false
     })
     const {data} = await renderTemplate(id)
+    ntf.close()
+    this.$notify({
+      title: 'Success',
+      dangerouslyUseHTMLString: true,
+      message: '下载完成',
+      type: 'success'
+    })
+  }
+
+  /**
+   * 渲染测试
+   * @param id
+   * @private
+   */
+  private async mockRenderTemplate(id:number) {
+    const {data} = await getTemplateRelatedLabels(id);
+    this.selectedTemplateRelatedLabels = data;
+    this.mockRenderModel['templateId'] = id;
+    this.selectedTemplateRelatedLabels.forEach(str => {
+      // this.mockRenderModel[`${str.code}`] = ''
+      this.$set(this.mockRenderModel, str.code, '')
+    });
+    this.mockRenderDialogVisible = true;
+  }
+
+  private cancelMockRenderTemplate() {
+    this.mockRenderDialogVisible=false;
+    this.mockRenderModel = {}
+    this.selectedTemplateRelatedLabels = []
+  }
+
+  private async confirmMockRenderTemplate() {
+    console.log(this.mockRenderModel);
+    const ntf = this.$notify({
+      title: 'Success',
+      dangerouslyUseHTMLString: true,
+      message: '开始下载',
+      type: 'success',
+      duration: 0,
+      showClose: false
+    })
+    const {data} = await mockRenderTemplate(this.mockRenderModel);
+    this.mockRenderDialogVisible = false;
     ntf.close()
     this.$notify({
       title: 'Success',

@@ -79,9 +79,12 @@ export default {
   },
   template: {
     createTemplate: '新建模版',
+    mockRender: '渲染测试',
+    cancelMockRender: '取消',
     saveTemplate: '保存模版',
     cancelCreate: '取消',
-    confirmCreate: '确认'
+    confirmCreate: '确认',
+    confirmMockRender: '确认'
   },
   label: {
     name: '标签名',

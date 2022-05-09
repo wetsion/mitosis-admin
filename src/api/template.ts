@@ -26,6 +26,20 @@ export const renderTemplate = (data: any) =>
     responseType: 'blob'
   })
 
+export const getTemplateRelatedLabels = (data: any) =>
+  request({
+    url: '/label/templateRelated?templateId=' + data,
+    method: 'get'
+  })
+
+export const mockRenderTemplate = (data: any) =>
+  request({
+    url: '/template/mockRenderPdf',
+    method: 'post',
+    responseType: 'blob',
+    data
+  })
+
 export const createTemplate = (data: any) =>
   request({
     url: '/template/create',
