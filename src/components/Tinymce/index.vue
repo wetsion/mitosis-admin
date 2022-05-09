@@ -76,6 +76,25 @@ export default class extends Vue{
     tinymce.activeEditor.insertContent(ctt);
   }
 
+  public removeNode(selector:string) {
+    const exist = tinymce.activeEditor.dom.select(selector)
+    if (exist) {
+      tinymce.activeEditor.dom.remove(exist);
+    }
+  }
+
+  public findMappedNodeOnEditor(selector:string) {
+    const findResult = tinymce.activeEditor.dom.select(selector);
+    console.log(findResult)
+    if (findResult) {
+      if (tinymce.activeEditor.dom.hasClass(findResult[0], 'highlight')) {
+        tinymce.activeEditor.dom.removeClass(findResult, 'highlight');
+      } else {
+        tinymce.activeEditor.dom.addClass(findResult, 'highlight');
+      }
+    }
+  }
+
 };
 </script>
 

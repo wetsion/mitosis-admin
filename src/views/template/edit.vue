@@ -49,7 +49,6 @@
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import { queryLabels, previewTemplates, saveTemplate } from '@/api/template';
 import Tinymce from '@/components/Tinymce/index.vue'
-import tinymce from 'tinymce'
 
 @Component({
   name: 'testTemplate',
@@ -114,6 +113,7 @@ export default class extends Vue{
     if (data.relatedLabels && data.relatedLabels.length > 0) {
       this.selectedLabels = []
       data.relatedLabels.forEach(rl => {
+        rl._key = rl.locationPk
         this.selectedLabels.push(rl)
       })
     }
@@ -135,14 +135,18 @@ export default class extends Vue{
   }
 
   private async doSaveTemplate() {
-    const selectedLabelIdList = []
+    const relatedLabelList = []
     this.selectedLabels.forEach(sl => {
-      selectedLabelIdList.push(sl.id)
+      relatedLabelList.push({
+        labelId: sl.id,
+        locationPk: sl._key
+      })
     })
+
     const st = {
       templateId: this.templateId,
       content: this.html,
-      relatedLabels: selectedLabelIdList
+      relatedLabelList: relatedLabelList
     }
     const {data} = await saveTemplate(st)
     if (data) {
@@ -201,7 +205,7 @@ export default class extends Vue{
   }
 
   private createLabelOnEditor(item) {
-    item._key = (Math.random() * 1000).toFixed(0) + ''
+    item._key = new Date().getTime() + '' + (Math.random() * 1000).toFixed(0) + ''
     this.addSelectedLabel(item)
     const infoStr = encodeURIComponent(JSON.stringify(item));
     const ctt = `<span class="customLabel" data-mitosis-type="customLabel" data-mitosis-label-data-type="${item.dataType}" data-mitosis-label-pk="${item._key}" data-mitosis-is-void data-mitosis-is-inline data-value="${item.id}" data-info="${infoStr}">#${item.name}#</span>`;
@@ -209,14 +213,7 @@ export default class extends Vue{
   }
 
   private addSelectedLabel(item) {
-    // let en = this.selectedLabels.filter(sl => {
-    //   return sl.id === item.id
-    // }).length;
-    // if (en >= 1) {
-    //   return;
-    // } else {
     this.selectedLabels.push(item)
-    // }
   }
 
   private closeSelectedLabel(item) {
@@ -236,11 +233,7 @@ export default class extends Vue{
   }
 
   private doRemoveSelectedLabel(item) {
-    console.log(item)
-    const exist = tinymce.activeEditor.dom.select(`span.customLabel[data-mitosis-label-pk="${item._key}"]`)
-    if (exist) {
-      tinymce.activeEditor.dom.remove(exist);
-    }
+    (this.$refs.tinymce as Tinymce).removeNode(`span.customLabel[data-mitosis-label-pk="${item._key}"]`)
     const tmpSls = []
     this.selectedLabels.forEach(tsl => {
       if (tsl.id != item.id) {
@@ -251,16 +244,7 @@ export default class extends Vue{
   }
 
   private findMappedLabel(item) {
-    console.log(item)
-    const findResult = tinymce.activeEditor.dom.select(`span.customLabel[data-mitosis-label-pk="${item}"]`);
-    console.log(findResult)
-    if (findResult) {
-      if (tinymce.activeEditor.dom.hasClass(findResult[0], 'highlight')) {
-        tinymce.activeEditor.dom.removeClass(findResult, 'highlight');
-      } else {
-        tinymce.activeEditor.dom.addClass(findResult, 'highlight');
-      }
-    }
+    (this.$refs.tinymce as Tinymce).findMappedNodeOnEditor(`span.customLabel[data-mitosis-label-pk="${item}"]`)
   }
 
   mounted() {
